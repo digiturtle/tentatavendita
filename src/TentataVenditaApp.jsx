@@ -101,6 +101,7 @@ function reducer(state, action) {
     }
     case 'UPDATE_DOC_LINE': {
       const { docId, index, field, value } = action;
+      const stock = { ...state.scorte };
       const docs = state.docs.map((d) => {
         if (d.id !== docId) return d;
         const old = d.lines[index];
@@ -108,28 +109,28 @@ function reducer(state, action) {
         if (field === 'qty') {
           const diff = value - old.qty;
           upd.qty = value;
-          state.scorte[old.idArticolo] =
-            (state.scorte[old.idArticolo] || 0) - diff;
+          stock[old.idArticolo] = (stock[old.idArticolo] || 0) - diff;
         }
         if (field === 'prezzoUnitario') upd.prezzoUnitario = value;
         upd.totaleRiga = upd.qty * upd.prezzoUnitario;
         const newLines = d.lines.map((l, i) => (i === index ? upd : l));
         return { ...d, lines: newLines, totale: calcTotale(newLines) };
       });
-      return { ...state, docs };
+      return { ...state, docs, scorte: stock };
     }
     case 'DELETE_DOC_LINE': {
       const { docId, index } = action;
+      const stock = { ...state.scorte };
       const docs = state.docs.map((d) => {
         if (d.id !== docId) return d;
         const removed = d.lines[index];
         const remaining = d.lines.filter((_, i) => i !== index);
         if (removed)
-          state.scorte[removed.idArticolo] =
-            (state.scorte[removed.idArticolo] || 0) + removed.qty;
+          stock[removed.idArticolo] =
+            (stock[removed.idArticolo] || 0) + removed.qty;
         return { ...d, lines: remaining, totale: calcTotale(remaining) };
       });
-      return { ...state, docs };
+      return { ...state, docs, scorte: stock };
     }
 
     /* ---------------- INCASSI --------------- */
